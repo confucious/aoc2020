@@ -1045,4 +1045,19 @@ func part1() {
     print(total)
 }
 
-part1()
+func part2() {
+    parse()
+    var total = 0
+    for line in parsedLines {
+        let firstIndex = line.password.index(line.password.startIndex, offsetBy: line.minCount - 1)
+        let secondIndex = line.password.index(line.password.startIndex, offsetBy: line.maxCount - 1)
+        let firstMatch = line.password[firstIndex] == line.letter
+        let secondMatch = line.password[secondIndex] == line.letter
+        if firstMatch && !secondMatch || !firstMatch && secondMatch {
+            total += 1
+        }
+    }
+    print(total)
+}
+
+part2()
