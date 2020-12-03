@@ -6,7 +6,19 @@
 //
 
 import Foundation
-
+let sampleInput = """
+..##.......
+#...#...#..
+.#....#..#.
+..#.#...#.#
+.#...##..#.
+..#.##.....
+.#.#.#....#
+.#........#
+#.##...#...
+#...##....#
+.#..#...#.#
+"""
 let input = """
 .##.#.........#.....#....#...#.
 .#.#.#...#.......#.............
@@ -375,17 +387,32 @@ struct Map {
     }
 }
 
-func part1() {
-    let map = Map(input: input)
+func test(map: Map, right: Int, down: Int) -> Int {
     var point = Point(x: 0, y: 0)
     var treeCount = 0
     while point.y < map.height {
         if map.thing(at: point) == .tree {
             treeCount += 1
         }
-        point = point.offset(right: 3, down: 1)
+        point = point.offset(right: right, down: down)
     }
+    return treeCount
+}
+
+func part1() {
+    let map = Map(input: input)
+    let treeCount = test(map: map, right: 3, down: 1)
     print(treeCount)
 }
 
-part1()
+func part2() {
+    let map = Map(input: input)
+    let treeCount1 = test(map: map, right: 1, down: 1)
+    let treeCount2 = test(map: map, right: 3, down: 1)
+    let treeCount3 = test(map: map, right: 5, down: 1)
+    let treeCount4 = test(map: map, right: 7, down: 1)
+    let treeCount5 = test(map: map, right: 1, down: 2)
+    print("\(treeCount1) * \(treeCount2) * \(treeCount3) * \(treeCount4) * \(treeCount5) = \(treeCount1 * treeCount2 * treeCount3 * treeCount4 * treeCount5)")
+}
+
+part2()
