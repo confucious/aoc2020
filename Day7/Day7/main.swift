@@ -681,4 +681,18 @@ func part1() {
     print(count)
 }
 
-part1()
+func countSubBags(color: Color) -> Int {
+    let bag = colorMap[color]!
+    var result = 0
+    for (count, subColor) in bag.containedColors {
+        let subCount = countSubBags(color: subColor)
+        result += count * (subCount + 1)
+    }
+    return result
+}
+
+func part2() {
+    print(countSubBags(color: "shiny gold"))
+}
+
+part2()
