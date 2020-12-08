@@ -7,44 +7,6 @@
 
 import Foundation
 
-enum Operation: String {
-    case nop
-    case acc
-    case jmp
-}
-
-struct Instruction {
-    let operation: Operation
-    let argument: Int
-}
-
-func parse(program: String) -> [Instruction] {
-    return program.split(separator: "\n").map { (line) in
-        let components = line.split(separator: " ")
-        return Instruction(operation: Operation(rawValue: String(components[0]))!,
-                           argument: Int(components[1])!)
-    }
-}
-
-struct Computer {
-    var instructions: [Instruction]
-    var accumulator: Int = 0
-    var pc: Int = 0
-
-    mutating func step() {
-        let instruction = instructions[pc]
-        switch instruction.operation {
-        case .nop:
-            pc += 1
-        case .acc:
-            accumulator += instruction.argument
-            pc += 1
-        case .jmp:
-            pc += instruction.argument
-        }
-    }
-}
-
 let sampleInput = """
 nop +0
 acc +1
@@ -686,6 +648,55 @@ jmp +1
 jmp +1
 """
 
+enum Operation: String {
+    case nop
+    case acc
+    case jmp
+}
+
+struct Instruction {
+    var operation: Operation
+    var argument: Int
+}
+
+func parse(program: String) -> [Instruction] {
+    return program.split(separator: "\n").map { (line) in
+        let components = line.split(separator: " ")
+        return Instruction(operation: Operation(rawValue: String(components[0]))!,
+                           argument: Int(components[1])!)
+    }
+}
+
+struct Computer {
+    var instructions: [Instruction]
+    var accumulator: Int = 0
+    var pc: Int = 0
+    var completed: Bool {
+        pc >= instructions.count
+    }
+
+    mutating func step() {
+        let instruction = instructions[pc]
+        switch instruction.operation {
+        case .nop:
+            pc += 1
+        case .acc:
+            accumulator += instruction.argument
+            pc += 1
+        case .jmp:
+            pc += instruction.argument
+        }
+    }
+
+    mutating func run() {
+        var seenInstructions = Set<Int>()
+        while(!seenInstructions.contains(pc) && !completed) {
+            seenInstructions.insert(pc)
+            step()
+        }
+    }
+}
+
 func part1() {
     var computer = Computer(instructions: parse(program: input))
     var seenInstructions = Set<Int>()
@@ -696,4 +707,25 @@ func part1() {
     print(computer.accumulator)
 }
 
-part1()
+func part2() {
+    let originalProgram = parse(program: input)
+    for (index, instruction) in originalProgram.enumerated() {
+        var testProgram = originalProgram
+        switch instruction.operation {
+        case .nop:
+            testProgram[index].operation = .jmp
+        case .jmp:
+            testProgram[index].operation = .nop
+        case .acc:
+            continue
+        }
+        var computer = Computer(instructions: testProgram)
+        computer.run()
+        if computer.completed {
+            print(computer.accumulator)
+            break
+        }
+    }
+}
+
+part2()
