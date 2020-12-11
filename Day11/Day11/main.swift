@@ -64,6 +64,29 @@ struct Map: Equatable {
             + (get(col: col + 1, row: row + 1) == .occupied ? 1 : 0)
     }
 
+    func scanFrom(col: Int, row: Int, deltaCol: Int, deltaRow: Int) -> LocationType {
+        var checkCol = col + deltaCol
+        var checkRow = row + deltaRow
+        while get(col: checkCol, row: checkRow) == .floor
+                && (0..<width).contains(checkCol)
+                && (0..<height).contains(checkRow) {
+            checkCol += deltaCol
+            checkRow += deltaRow
+        }
+        return get(col: checkCol, row: checkRow)
+    }
+
+    func countAround2(col: Int, row: Int) -> Int {
+        return (scanFrom(col: col, row: row, deltaCol: -1, deltaRow: -1) == .occupied ? 1 : 0)
+            + (scanFrom(col: col, row: row, deltaCol: -1, deltaRow: 0) == .occupied ? 1 : 0)
+            + (scanFrom(col: col, row: row, deltaCol: -1, deltaRow: +1) == .occupied ? 1 : 0)
+            + (scanFrom(col: col, row: row, deltaCol: 0, deltaRow: -1) == .occupied ? 1 : 0)
+            + (scanFrom(col: col, row: row, deltaCol: 0, deltaRow: +1) == .occupied ? 1 : 0)
+            + (scanFrom(col: col, row: row, deltaCol: +1, deltaRow: -1) == .occupied ? 1 : 0)
+            + (scanFrom(col: col, row: row, deltaCol: +1, deltaRow: 0) == .occupied ? 1 : 0)
+            + (scanFrom(col: col, row: row, deltaCol: +1, deltaRow: +1) == .occupied ? 1 : 0)
+    }
+
     func step() -> Map {
         var result = self
         for col in 0..<width {
@@ -77,6 +100,27 @@ struct Map: Equatable {
                     }
                 case .occupied:
                     if countAround(col: col, row: row) >= 4 {
+                        result.set(col: col, row: row, value: .empty)
+                    }
+                }
+            }
+        }
+        return result
+    }
+
+    func step2() -> Map {
+        var result = self
+        for col in 0..<width {
+            for row in 0..<height {
+                switch get(col: col, row: row) {
+                case .floor:
+                    continue
+                case .empty:
+                    if countAround2(col: col, row: row) == 0 {
+                        result.set(col: col, row: row, value: .occupied)
+                    }
+                case .occupied:
+                    if countAround2(col: col, row: row) >= 5 {
                         result.set(col: col, row: row, value: .empty)
                     }
                 }
@@ -103,4 +147,18 @@ func part1() {
     print(map.countOccupied())
 }
 
-part1()
+func part2() {
+    var map = Map(input: input)
+    var changed = true
+    while changed {
+        let newMap = map.step2()
+        if map == newMap {
+            changed = false
+        }
+        map = newMap
+    }
+    print(map.countOccupied())
+}
+
+part2()
+
