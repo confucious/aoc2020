@@ -40,19 +40,15 @@ func scan(line: String, startTime: Int = 0) -> Int {
         targetMap[bus] = time
         busOrder.append(bus)
     }
-
-    var matchFound = false
-    let mostInfrequentBus = busOrder.max()!
-    var test = (startTime / mostInfrequentBus) * mostInfrequentBus - targetMap[mostInfrequentBus]!
-    while !matchFound {
-        matchFound = busOrder.allSatisfy { (bus) -> Bool in
-            isStartTimeAligned(bus: bus, startTime: test + targetMap[bus]!)
+    var test = 0
+    var increment = busOrder[0]
+    for bus in busOrder[1...] {
+        while (test + targetMap[bus]!) % bus != 0 {
+            test += increment
         }
-        if !matchFound {
-            test += mostInfrequentBus
-        }
+        increment *= bus
     }
-    print(test)
+    print("\(line) = \(test)")
     return test
 }
 
@@ -61,13 +57,15 @@ func part2() {
     scan(line: String(line))
 }
 
+print(scan(line: "7,13"))
+print(scan(line: "7,13,x,x,59"))
+print(scan(line: "7,13,x,x,59,x,31"))
 print(scan(line: "7,13,x,x,59,x,31,19") == 1068781)
 print(scan(line: "17,x,13,19") == 3417)
 print(scan(line: "67,7,59,61") == 754018)
 print(scan(line: "67,x,7,59,61") == 779210)
 print(scan(line: "67,7,x,59,61") == 1261476)
 print(scan(line: "1789,37,47,1889", startTime: 1202161400) == 1202161486)
-print(scan(line: "29,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,37,x,x,x,x,x,631,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,13,19,x,x,x,23,x,x,x,x,x,x,x,383,x,x,x,x,x,x,x,x,x,41,x,x,x,x,x,x,17",
-        startTime: 100000000000000) == 1202161486)
+scan(line: "29,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,37,x,x,x,x,x,631,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,x,13,19,x,x,x,23,x,x,x,x,x,x,x,383,x,x,x,x,x,x,x,x,x,41,x,x,x,x,x,x,17")
 
 
