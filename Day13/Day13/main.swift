@@ -24,4 +24,41 @@ func part1() {
     print("\(bus) \(earliest) = \(bus * (earliest - startTime))")
 }
 
-part1()
+func isStartTimeAligned(bus: Int, startTime: Int) -> Bool {
+    return startTime % bus == 0
+}
+
+func scan(line: String) {
+    typealias Bus = Int
+    typealias Time = Int
+    var targetMap = [Bus:Time]()
+    var busOrder = [Bus]()
+    for (time, bus) in line.split(separator: ",").enumerated()
+        .filter({ $1 != "x" })
+        .map({ ($0, Int(String($1))!) }) {
+        targetMap[bus] = time
+        busOrder.append(bus)
+    }
+
+    var matchFound = false
+    var test = 0
+    while !matchFound {
+        matchFound = busOrder.allSatisfy { (bus) -> Bool in
+            isStartTimeAligned(bus: bus, startTime: test + targetMap[bus]!)
+        }
+        if !matchFound {
+            test += busOrder[0]
+        }
+    }
+    print(test)
+}
+
+func part2() {
+    let line = input .split(separator: "\n").last!
+    scan(line: String(line))
+}
+
+part2()
+scan(line: "17,x,13,19")
+scan(line: "1789,37,47,1889")
+
