@@ -104,7 +104,7 @@ struct Mask2 {
         let permutations = Mask2.permute(input: floating)
         self.permutations = permutations.map {
             return $0.reduce(0) { (sum, index) in
-                sum + (pow(2, index) as NSDecimalNumber).intValue
+                sum + Int(pow(Double(2), Double(index)))
             }
         }
         self.permutationMask = permutationMask
