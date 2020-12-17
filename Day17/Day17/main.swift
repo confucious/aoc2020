@@ -106,12 +106,15 @@ struct Map {
 
     func display() {
         print("\(minX)-\(maxX), \(minY)-\(maxY), \(minZ)-\(maxZ), \(minW)-\(maxW)")
-//        for zIndex in (minZ)...(maxZ) {
-//            print("z=\(zIndex)")
-//            for yIndex in (minY)...(maxY) {
-//                print((minX...maxX).map { points.contains(Point(x: $0, y: yIndex, z: zIndex)) ? "#" : "." }.joined())
-//            }
-//        }
+        for wIndex in (minW)...(maxW) {
+            for zIndex in (minZ)...(maxZ) {
+                print("z=\(zIndex), w=\(wIndex)")
+                for yIndex in (minY)...(maxY) {
+                    print((minX...maxX).map { points.contains(Point(x: $0, y: yIndex, z: zIndex, w: wIndex)) ? "#" : "." }.joined())
+                }
+                print()
+            }
+        }
     }
 }
 
