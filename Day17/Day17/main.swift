@@ -8,32 +8,35 @@
 import Foundation
 
 struct Point: Equatable, Hashable {
-    let x, y, z: Int
+    let x, y, z, w: Int
 
-    func offset(x deltaX: Int, y deltaY: Int, z deltaZ: Int) -> Point {
-        return Point(x: self.x + deltaX, y: self.y + deltaY, z: self.z + deltaZ)
+    func offset(x deltaX: Int, y deltaY: Int, z deltaZ: Int, w deltaW: Int) -> Point {
+        return Point(x: self.x + deltaX, y: self.y + deltaY, z: self.z + deltaZ, w: w + deltaW)
     }
 
-    static let neighborOffsets: [(Int, Int, Int)] = (-1...1).flatMap { x in
-        (-1...1).flatMap { y in
-            (-1...1).compactMap { z in
-                if x == 0 && y == 0 && z == 0 {
-                    return nil
+    static let neighborOffsets: [(Int, Int, Int, Int)] =
+        (-1...1).flatMap { w in
+            (-1...1).flatMap { x in
+                (-1...1).flatMap { y in
+                    (-1...1).compactMap { z in
+                        if x == 0 && y == 0 && z == 0 && w == 0 {
+                            return nil
+                        }
+                        return (x, y, z, w)
+                    }
                 }
-                return (x, y, z)
             }
-        }
     }
 
     var neighbors: [Point] {
         return Point.neighborOffsets.map {
-            offset(x: $0, y: $1, z: $2)
+            offset(x: $0, y: $1, z: $2, w: $3)
         }
     }
 }
 
 struct Map {
-    var minX, maxX, minY, maxY, minZ, maxZ: Int
+    var minX, maxX, minY, maxY, minZ, maxZ, minW, maxW: Int
     var points: Set<Point>
 
     init(input: String) {
@@ -43,6 +46,8 @@ struct Map {
         maxY = 0
         minZ = 0
         maxZ = 0
+        minW = 0
+        maxW = 0
         points = Set()
         let lines = input.split(separator: "\n")
         maxY = lines.count - 1
@@ -50,7 +55,7 @@ struct Map {
         for (y, line) in lines.enumerated() {
             for (x, char) in line.enumerated() {
                 if char == "#" {
-                    points.insert(Point(x: x, y: y, z: 0))
+                    points.insert(Point(x: x, y: y, z: 0, w: 0))
                 }
             }
         }
@@ -67,26 +72,30 @@ struct Map {
         for xIndex in (minX - 1)...(maxX + 1) {
             for yIndex in (minY - 1)...(maxY + 1) {
                 for zIndex in (minZ - 1)...(maxZ + 1) {
-                    let test = Point(x: xIndex, y: yIndex, z: zIndex)
-                    if points.contains(test) {
-                        // active
-                        if (2...3).contains(neighborCount(test)) {
-                            result.points.insert(test)
+                    for wIndex in (minW - 1)...(maxW + 1) {
+                        let test = Point(x: xIndex, y: yIndex, z: zIndex, w: wIndex)
+                        if points.contains(test) {
+                            // active
+                            if (2...3).contains(neighborCount(test)) {
+                                result.points.insert(test)
+                            } else {
+                                result.points.remove(test)
+                            }
                         } else {
-                            result.points.remove(test)
-                        }
-                    } else {
-                        // inactive
-                        if neighborCount(test) == 3 {
-                            result.points.insert(test)
-                            result.minX = min(result.minX, test.x)
-                            result.minY = min(result.minY, test.y)
-                            result.minZ = min(result.minZ, test.z)
-                            result.maxX = max(result.maxX, test.x)
-                            result.maxY = max(result.maxY, test.y)
-                            result.maxZ = max(result.maxZ, test.z)
-                        } else {
-                            result.points.remove(test)
+                            // inactive
+                            if neighborCount(test) == 3 {
+                                result.points.insert(test)
+                                result.minX = min(result.minX, test.x)
+                                result.minY = min(result.minY, test.y)
+                                result.minZ = min(result.minZ, test.z)
+                                result.minW = min(result.minW, test.w)
+                                result.maxX = max(result.maxX, test.x)
+                                result.maxY = max(result.maxY, test.y)
+                                result.maxZ = max(result.maxZ, test.z)
+                                result.maxW = max(result.maxW, test.w)
+                            } else {
+                                result.points.remove(test)
+                            }
                         }
                     }
                 }
@@ -96,14 +105,13 @@ struct Map {
     }
 
     func display() {
-        print("\(minX)-\(maxX), \(minY)-\(maxY), \(minZ)-\(maxZ)")
-        for zIndex in (minZ)...(maxZ) {
-            print("z=\(zIndex)")
-            for yIndex in (minY)...(maxY) {
-                print((minX...maxX).map { points.contains(Point(x: $0, y: yIndex, z: zIndex)) ? "#" : "." }.joined())
-            }
-        }
-
+        print("\(minX)-\(maxX), \(minY)-\(maxY), \(minZ)-\(maxZ), \(minW)-\(maxW)")
+//        for zIndex in (minZ)...(maxZ) {
+//            print("z=\(zIndex)")
+//            for yIndex in (minY)...(maxY) {
+//                print((minX...maxX).map { points.contains(Point(x: $0, y: yIndex, z: zIndex)) ? "#" : "." }.joined())
+//            }
+//        }
     }
 }
 
