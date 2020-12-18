@@ -86,6 +86,49 @@ func order(_ tokens: [Tokens]) -> Node {
     }
 }
 
+func order2(_ tokens: [Tokens]) -> Node {
+    guard tokens.count % 2 != 0 else {
+        fatalError("\(tokens.count) tokens. Should always be an odd number.")
+    }
+    if tokens.count == 1 {
+        switch tokens[0] {
+        case .number(let value): return .value(value)
+        case .parens(let subTokens): return .value(evaluate(rotate(order2(subTokens))))
+        default:
+            fatalError("\(tokens[0]) by itself makes no sense")
+        }
+    } else {
+        let leftNode: Node
+        let rightNode: Node
+        let operation = tokens[tokens.count - 2].operation
+        switch tokens[tokens.count - 1] {
+        case .number(let value): leftNode = .value(value)
+        case .parens(let subTokens): leftNode = .value(evaluate(rotate(order2(subTokens))))
+        default:
+            fatalError("\(tokens[0]) must be number or parens")
+        }
+        rightNode = order2(Array(tokens.dropLast(2)))
+        return .branch(left: leftNode, right: rightNode, operation: operation)
+    }
+}
+func rotate(_ rootNode: Node) -> Node {
+    switch rootNode {
+    case .value: return rootNode
+    case let .branch(left: left, right: right, operation: operation):
+        let right = rotate(right)
+        switch right {
+        case .value: return rootNode
+        case let .branch(left: subLeft, right: subRight, operation: subOperation):
+        if subOperation == .multiplication && operation == .addition {
+            let rotatedLeft: Node = .branch(left: left, right: subLeft, operation: operation)
+            return .branch(left: rotatedLeft, right: subRight, operation: subOperation)
+        } else {
+            return .branch(left: left, right: right, operation: operation)
+        }
+        }
+    }
+}
+
 func evaluate(_ node: Node) -> Int {
     switch node {
     case .value(let value): return value
@@ -106,7 +149,14 @@ func evaluate(_ input: String) -> Int {
     return result
 }
 
-func tests() {
+@discardableResult
+func evaluate2(_ input: String) -> Int {
+    let result = evaluate(rotate(order2(parse(input: input))))
+    print("\(input) = \(result)")
+    return result
+}
+
+func tests1() {
     print(evaluate("1 + 2 * 3 + 4 * 5 + 6") == 71)
     print(evaluate("1 + (2 * 3) + (4 * (5 + 6))") == 51)
     print(evaluate("2 * 3 + (4 * 5)") == 26)
@@ -123,4 +173,22 @@ func part1() {
     print(result)
 }
 
-part1()
+func tests2() {
+    print(evaluate2("1 + 2 * 3 + 4 * 5 + 6") == 231)
+    print(evaluate2("1 + (2 * 3) + (4 * (5 + 6))") == 51)
+    print(evaluate2("2 * 3 + (4 * 5)") == 46)
+    print(evaluate2("8 * 3 + 9 + 3 * 4 * 3") == 1440)
+    print(evaluate2("5 + (8 * 3 + 9 + 3 * 4 * 3)") == 1445)
+    print(evaluate2("5 * 9 * (7 * 3 * 3 + 9 * 3 + (8 + 6 * 4))") == 669060)
+    print(evaluate2("((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2") == 23340)
+}
+
+func part2() {
+    var result = 0
+    for line in input.components(separatedBy: "\n") {
+        result += evaluate2(line)
+    }
+    print(result)
+}
+
+part2()
