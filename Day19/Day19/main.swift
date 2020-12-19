@@ -42,6 +42,78 @@ struct RuleSet {
             return nil
         }
     }
+
+    // Return possible variable remaining matches
+    // Return empty array if no possible matches
+    func consume2(_ input: String, rule: String) -> [String] {
+        switch ruleSet[rule]! {
+        case let .leaf(character):
+            if let testChar = input.first,
+               testChar == character {
+                return [String(input.dropFirst())]
+            } else {
+                return []
+            }
+        case let .subrules(subrules):
+//            if rule == "8" {
+//                // we can match 42 multiple times...
+//                // repeatedly match it until we no longer match
+//                var trialRemaining: String? = input
+//                var remaining: String?
+//                var count = -1
+//                repeat {
+//                    remaining = trialRemaining
+//                    trialRemaining = consume2(trialRemaining!, rule: "42")
+//                    count += 1
+//                } while trialRemaining != nil
+//                print("8 matched 42 \(count) times")
+//                if count <= 0 {
+//                    // we didn't match anything at all
+//                    return nil
+//                } else {
+//                    return remaining
+//                }
+//            }
+//            if rule == " 11" {
+//                // we can match 42 and 31 in nesting pairs...
+//                // count how many times we match 42 then see if we can match 31 an equal number of times?
+//                var trialRemaining: String? = input
+//                var remaining: String?
+//                var count = -1
+//                repeat {
+//                    remaining = trialRemaining
+//                    trialRemaining = consume2(trialRemaining!, rule: "42")
+//                    count += 1
+//                } while trialRemaining != nil
+//                print("11 matched 42 \(count) times")
+//                if count <= 0 {
+//                    // we didn't match anything at all
+//                    return nil
+//                }
+//                for _ in 0..<count {
+//                    remaining = consume2(remaining!, rule: "31")
+//                    if remaining == nil {
+//                        return nil
+//                    }
+//                }
+//                print("11 matched 31 an equal number")
+//                return remaining
+//            }
+            for subruleList in subrules {
+                var remaining = [input]
+                for subrule in subruleList {
+                    remaining = consume2(remaining.first!, rule: subrule)
+                    if remaining.isEmpty {
+                        break
+                    }
+                }
+                if !remaining.isEmpty {
+                    return remaining
+                }
+            }
+            return []
+        }
+    }
 }
 
 func parse(_ input: String) -> RuleSet {
@@ -75,5 +147,18 @@ func part1() {
     print(count)
 }
 
-part1()
 
+func part2() {
+    let ruleSet = parse(testRules2)
+    let count = testInput2.components(separatedBy: "\n")
+//                let ruleSet = parse(rulesInput)
+//                let count = input.components(separatedBy: "\n")
+        .filter { (input) in
+            let match = ruleSet.consume2(input, rule: "0") == [""]
+            print("\(input) \(match)")
+            return match
+        }.count
+    print(count)
+}
+
+part2()
