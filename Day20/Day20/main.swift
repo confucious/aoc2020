@@ -18,9 +18,9 @@ enum Orientation: CaseIterable {
     case mirrorRotate270
 
     func adjust(for orientation: Orientation) -> Orientation {
-        switch (orientation, self) {
-        case (.original, _): return self
-        case (_, .original): return orientation
+        switch (self, orientation) {
+        case (.original, _): return orientation
+        case (_, .original): return self
         case (.mirrorV, .mirrorV),
              (.mirrorH, .mirrorH),
              (.rotate90, .rotate270),
@@ -108,13 +108,20 @@ struct Tile {
     typealias Id = Int
     let id: Id
     let rawData: [String]
+    let cleanData: [String]
+    let r90Data: [String]
     let edges: Edges
     var matches: [Edge:(Id, Orientation)] = [:]
 
+    static func rotate(_ data: [String]) -> [String] {
+        return (0..<8).map { (index) in String(data.map { $0.prefix(index + 1).suffix(1) }.joined().reversed()) }
+    }
     init(input: String) {
         let lines = input.components(separatedBy: "\n")
         self.id = Int(lines[0].dropFirst(5).dropLast())!
         self.rawData = Array(lines[1...])
+        self.cleanData = rawData[1...8].map { String($0.dropFirst().dropLast()) }
+        self.r90Data = Tile.rotate(cleanData)
         let topEdge = getInt(from: lines[1])
         let bottomEdge = getInt(from: lines[10])
         let leftEdge = getInt(from: lines[1...].map { String($0.first!) }.joined())
@@ -134,18 +141,45 @@ struct Tile {
             }
     }
 
-    func cleanData() -> [String] {
-        return rawData[1...8].map { String($0.dropFirst().dropLast()) }
+    func row(_ index: Int, oriented: Orientation) -> String {
+        switch oriented {
+        case .original: return cleanData[index]
+        case .mirrorV: return cleanData[7 - index]
+        case .mirrorH: return String(cleanData[index].reversed())
+        case .rotate180: return String(cleanData[7 - index].reversed())
+        case .rotate90: return r90Data[index]
+        case .rotate270: return String(r90Data[7 - index].reversed())
+        case .mirrorRotate90: return String(r90Data[index].reversed())
+        case .mirrorRotate270: return r90Data[7 - index]
+        }
     }
 
     func tileToRight(oriented: Orientation) -> (Tile.Id, Orientation)? {
         switch oriented {
-        case .original: return matches[.right]
-        case .mirrorH: return matches[.left]
-        case .mirrorV: matches[.right].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
-
+        case .original: return matches[.right].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .mirrorH: return matches[.left].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .mirrorV: return matches[.right].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .rotate90: return matches[.top].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .rotate180: return matches[.left].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .rotate270: return matches[.bottom].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .mirrorRotate90: return matches[.bottom].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .mirrorRotate270: return matches[.top].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
         }
     }
+
+    func tileToBottom(oriented: Orientation) -> (Tile.Id, Orientation)? {
+        switch oriented {
+        case .original: return matches[.bottom].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .mirrorH: return matches[.bottom].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .mirrorV: return matches[.top].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .rotate90: return matches[.right].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .rotate180: return matches[.top].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .rotate270: return matches[.left].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .mirrorRotate90: return matches[.right].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        case .mirrorRotate270: return matches[.left].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
+        }
+    }
+
 }
 
 let flipMap: [Int] = (0..<0x400).map { (value) in
@@ -178,7 +212,8 @@ func part1() {
 }
 
 func order(tiles: [Tile.Id:Tile]) -> [[(Tile.Id, Orientation)]] {
-    var firstTile = tiles.values.filter { $0.matches.count == 2 }.first!
+//    var firstTile = tiles.values.filter { $0.matches.count == 2 }.first!
+    var firstTile = tiles[1951]!
     var firstOrientation: Orientation
     switch Set(firstTile.matches.keys) {
     case [.right, .bottom]: firstOrientation = .original
@@ -209,6 +244,20 @@ func order(tiles: [Tile.Id:Tile]) -> [[(Tile.Id, Orientation)]] {
     return result
 }
 
+func arrange(tiles: [Tile.Id:Tile], order: [[(Tile.Id, Orientation)]]) -> [String] {
+    var result: [String] = []
+    for row in order {
+        for line in 0..<8 {
+            var rowResult = ""
+            for tile in row {
+                rowResult.append(tiles[tile.0]!.row(line, oriented: tile.1))
+            }
+            result.append(rowResult)
+        }
+    }
+    return result
+}
+
 func part2() {
     var tiles: [Tile.Id:Tile] = sampleInput.components(separatedBy: "\n\n").reduce(into: [:], { (map, input) in
         let tile = Tile(input: input)
@@ -225,10 +274,12 @@ func part2() {
         }
     }
 
-//    for
-//
-//    let corners = tiles.values.filter { $0.possibleMatches.count == 2 }.map { $0.id }
+    let ordered = order(tiles: tiles)
+    print(ordered)
+    let combined = arrange(tiles: tiles, order: ordered)
 
-
+    print(combined.joined(separator: "\n"))
 
 }
+
+part2()
