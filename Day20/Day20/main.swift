@@ -15,7 +15,6 @@ enum Orientation: CaseIterable {
     case rotate180
     case rotate270
     case mirrorRotate90
-    case mirrorRotate180
     case mirrorRotate270
 }
 
@@ -38,7 +37,6 @@ struct Edges {
         case .rotate180: return Edges(top: flipMap[bottom], bottom: flipMap[top], left: flipMap[right], right: flipMap[left])
         case .rotate270: return Edges(top: right, bottom: left, left: flipMap[top], right: flipMap[bottom])
         case .mirrorRotate90: return Edges(top: left, bottom: right, left: flipMap[bottom], right: flipMap[top])
-        case .mirrorRotate180: return Edges(top: bottom, bottom: top, left: right, right: left)
         case .mirrorRotate270: return Edges(top: flipMap[right], bottom: flipMap[left], left: top, right: bottom)
         }
     }
@@ -53,14 +51,14 @@ func getInt(from bitmap: String) -> Int {
 struct Tile {
     typealias Id = Int
     let id: Id
-    let rawData: String
+    let rawData: [String]
     let edges: Edges
-    var possibleMatches: [Edge:[(Id, Orientation)]] = [:]
+    var matches: [Edge:(Id, Orientation)] = [:]
 
     init(input: String) {
         let lines = input.components(separatedBy: "\n")
         self.id = Int(lines[0].dropFirst(5).dropLast())!
-        self.rawData = lines[1...].joined(separator: "\n")
+        self.rawData = Array(lines[1...])
         let topEdge = getInt(from: lines[1])
         let bottomEdge = getInt(from: lines[10])
         let leftEdge = getInt(from: lines[1...].map { String($0.first!) }.joined())
@@ -73,11 +71,15 @@ struct Tile {
             .map { (otherTile.edges.convert(to: $0), $0) }
             .forEach { (testEdges, orientation) in
                 let matchType = (otherTile.id, orientation)
-                if edges.top == testEdges.bottom { possibleMatches[.top, default: []].append(matchType) }
-                if edges.bottom == testEdges.top { possibleMatches[.bottom, default: []].append(matchType) }
-                if edges.left == testEdges.right { possibleMatches[.left, default: []].append(matchType) }
-                if edges.right == testEdges.left { possibleMatches[.right, default: []].append(matchType) }
+                if edges.top == testEdges.bottom { matches[.top] = matchType }
+                if edges.bottom == testEdges.top { matches[.bottom] = matchType }
+                if edges.left == testEdges.right { matches[.left] = matchType }
+                if edges.right == testEdges.left { matches[.right] = matchType }
             }
+    }
+
+    func cleanData() -> [String] {
+        return rawData[1...8].map { String($0.dropFirst().dropLast()) }
     }
 }
 
@@ -106,9 +108,41 @@ func part1() {
         }
     }
 
-    let corners = tiles.values.filter { $0.possibleMatches.count == 2 }.map { $0.id }
+    let corners = tiles.values.filter { $0.matches.count == 2 }.map { $0.id }
     print("\(corners) = \(corners.reduce(1, *))")
-
 }
 
 part1()
+
+func order(tiles: [Tile.Id:Tile]) -> [[(Tile.Id, Orientation)]] {
+    var firstTile = tiles.values.filter { $0.possibleMatches.count == 2 }.map { $0.id }.first!
+    var result = [[(Tile.Id, Orientation)]]()
+    var done = false
+    while !done {
+
+    }
+}
+
+func part2() {
+    var tiles: [Tile.Id:Tile] = sampleInput.components(separatedBy: "\n\n").reduce(into: [:], { (map, input) in
+        let tile = Tile(input: input)
+        map[tile.id] = tile
+    })
+
+    for index in tiles.keys {
+        for testIndex in tiles.keys {
+            if index != testIndex {
+                var tile = tiles[index]!
+                tile.recordMatches(against: tiles[testIndex]!)
+                tiles[index] = tile
+            }
+        }
+    }
+
+//    for
+//
+//    let corners = tiles.values.filter { $0.possibleMatches.count == 2 }.map { $0.id }
+
+
+
+}
