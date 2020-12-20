@@ -81,6 +81,13 @@ struct Tile {
     func cleanData() -> [String] {
         return rawData[1...8].map { String($0.dropFirst().dropLast()) }
     }
+
+    func tileToRight(oriented: Orientation) {
+        switch oriented {
+        case .original: return matches[.right]!
+
+        }
+    }
 }
 
 let flipMap: [Int] = (0..<0x400).map { (value) in
@@ -112,15 +119,36 @@ func part1() {
     print("\(corners) = \(corners.reduce(1, *))")
 }
 
-part1()
-
 func order(tiles: [Tile.Id:Tile]) -> [[(Tile.Id, Orientation)]] {
-    var firstTile = tiles.values.filter { $0.possibleMatches.count == 2 }.map { $0.id }.first!
+    var firstTile = tiles.values.filter { $0.matches.count == 2 }.first!
+    var firstOrientation: Orientation
+    switch Set(firstTile.matches.keys) {
+    case [.right, .bottom]: firstOrientation = .original
+    case [.right, .top]: firstOrientation = .rotate90
+    case [.left, .bottom]: firstOrientation = .rotate270
+    case [.left, .top]: firstOrientation = .rotate180
+    default: fatalError("Orientations are weird \(firstTile)")
+    }
+
     var result = [[(Tile.Id, Orientation)]]()
+    result.append([(firstTile.id, firstOrientation)])
+
     var done = false
     while !done {
-
+        var currentTileAndOrientation = result.last![0]
+        while let nextTileAndOrientation = currentTileAndOrientation.0.tileToRight(oriented: currentTileAndOrientation.1) {
+            result[result.count - 1].append((nextTileAndOrientation.0.id, nextTileAndOrientation.1))
+            currentTileAndOrientation = nextTileAndOrientation
+        }
+        if let nextTileAndOrientation = firstTile.tileToBottom(oriented: firstOrientation) {
+            firstTile = nextTileAndOrientation.0
+            firstOrientation = nextTileAndOrientation.1
+            result.append([(firstTile.id, firstOrientation)])
+        } else {
+            done = true
+        }
     }
+    return result
 }
 
 func part2() {
