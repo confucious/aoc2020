@@ -16,6 +16,62 @@ enum Orientation: CaseIterable {
     case rotate270
     case mirrorRotate90
     case mirrorRotate270
+
+    func adjust(for orientation: Orientation) -> Orientation {
+        switch (orientation, self) {
+        case (.original, _): return self
+        case (_, .original): return orientation
+        case (.mirrorV, .mirrorV),
+             (.mirrorH, .mirrorH),
+             (.rotate90, .rotate270),
+             (.rotate270, .rotate90),
+             (.rotate180, .rotate180),
+             (.mirrorRotate90, .mirrorRotate90),
+             (.mirrorRotate270, .mirrorRotate270): return .original
+        case (.mirrorV, .mirrorH),
+             (.mirrorH, .mirrorV),
+             (.rotate90, .rotate90),
+             (.rotate270, .rotate270),
+             (.mirrorRotate270, .mirrorRotate90),
+             (.mirrorRotate90, .mirrorRotate270): return .rotate180
+        case (.mirrorV, .rotate90),
+             (.mirrorH, .rotate270),
+             (.rotate90, .mirrorH),
+             (.rotate270, .mirrorV),
+             (.mirrorRotate270, .rotate180),
+             (.rotate180, .mirrorRotate270): return .mirrorRotate90
+        case (.mirrorV, .rotate180),
+             (.rotate90, .mirrorRotate270),
+             (.rotate180, .mirrorV),
+             (.mirrorRotate90, .rotate90),
+             (.mirrorRotate270, .rotate270),
+             (.rotate270, .mirrorRotate90): return .mirrorH
+        case (.mirrorV, .rotate270),
+             (.mirrorH, .rotate90),
+             (.rotate90, .mirrorV),
+             (.rotate270, .mirrorH),
+             (.mirrorRotate90, .rotate180),
+             (.rotate180, .mirrorRotate90): return .mirrorRotate270
+        case (.mirrorV, .mirrorRotate90),
+             (.mirrorH, .mirrorRotate270),
+             (.mirrorRotate270, .mirrorV),
+             (.mirrorRotate90, .mirrorH),
+             (.rotate270, .rotate180),
+             (.rotate180, .rotate270): return .rotate90
+        case (.mirrorV, .mirrorRotate270),
+             (.rotate90, .rotate180),
+             (.mirrorH, .mirrorRotate90),
+             (.mirrorRotate90, .mirrorV),
+             (.mirrorRotate270, .mirrorH),
+             (.rotate180, .rotate90): return .rotate270
+        case (.mirrorH, .rotate180),
+             (.rotate90, .mirrorRotate90),
+             (.rotate180, .mirrorH),
+             (.mirrorRotate270, .rotate90),
+             (.mirrorRotate90, .rotate270),
+             (.rotate270, .mirrorRotate270): return .mirrorV
+        }
+    }
 }
 
 enum Edge {
@@ -82,9 +138,11 @@ struct Tile {
         return rawData[1...8].map { String($0.dropFirst().dropLast()) }
     }
 
-    func tileToRight(oriented: Orientation) {
+    func tileToRight(oriented: Orientation) -> (Tile.Id, Orientation)? {
         switch oriented {
-        case .original: return matches[.right]!
+        case .original: return matches[.right]
+        case .mirrorH: return matches[.left]
+        case .mirrorV: matches[.right].flatMap { ($0.0, $0.1.adjust(for: oriented)) }
 
         }
     }
@@ -135,14 +193,14 @@ func order(tiles: [Tile.Id:Tile]) -> [[(Tile.Id, Orientation)]] {
 
     var done = false
     while !done {
-        var currentTileAndOrientation = result.last![0]
-        while let nextTileAndOrientation = currentTileAndOrientation.0.tileToRight(oriented: currentTileAndOrientation.1) {
-            result[result.count - 1].append((nextTileAndOrientation.0.id, nextTileAndOrientation.1))
-            currentTileAndOrientation = nextTileAndOrientation
+        var currentTileIdAndOrientation = result.last![0]
+        while let nextTileIdAndOrientation = tiles[currentTileIdAndOrientation.0]!.tileToRight(oriented: currentTileIdAndOrientation.1) {
+            result[result.count - 1].append(nextTileIdAndOrientation)
+            currentTileIdAndOrientation = nextTileIdAndOrientation
         }
-        if let nextTileAndOrientation = firstTile.tileToBottom(oriented: firstOrientation) {
-            firstTile = nextTileAndOrientation.0
-            firstOrientation = nextTileAndOrientation.1
+        if let nextTileIdAndOrientation = firstTile.tileToBottom(oriented: firstOrientation) {
+            firstTile = tiles[nextTileIdAndOrientation.0]!
+            firstOrientation = nextTileIdAndOrientation.1
             result.append([(firstTile.id, firstOrientation)])
         } else {
             done = true
