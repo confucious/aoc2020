@@ -212,8 +212,7 @@ func part1() {
 }
 
 func order(tiles: [Tile.Id:Tile]) -> [[(Tile.Id, Orientation)]] {
-//    var firstTile = tiles.values.filter { $0.matches.count == 2 }.first!
-    var firstTile = tiles[1951]!
+    var firstTile = tiles.values.filter { $0.matches.count == 2 }.first!
     var firstOrientation: Orientation
     switch Set(firstTile.matches.keys) {
     case [.right, .bottom]: firstOrientation = .original
@@ -258,8 +257,52 @@ func arrange(tiles: [Tile.Id:Tile], order: [[(Tile.Id, Orientation)]]) -> [Strin
     return result
 }
 
+let monster = """
+                  #
+#    ##    ##    ###
+ #  #  #  #  #  #
+"""
+
+struct Point: Hashable & Equatable {
+    let x, y: Int
+
+    func offset(x deltaX: Int, y deltaY: Int) -> Point {
+        return Point(x: x + deltaX, y: y + deltaY)
+    }
+}
+
+func search(monster: String, map: [String]) -> Int {
+    let monsterPoints: [Point] = monster.components(separatedBy: "\n").enumerated().flatMap { (row, line) in
+        return line.enumerated().filter { $0.1 == "#" }.map { Point(x: $0.0, y: row) }
+    }
+
+    var marks: Set<Point> = []
+    let maxX = map[0].count - 20
+    let maxY = map.count - 3
+    for (rowIndex, line) in map.enumerated() {
+        for (colIndex, char) in line.enumerated() {
+            if char == "#" {
+                marks.insert(Point(x: colIndex, y: rowIndex))
+            }
+        }
+    }
+
+    var count = 0
+    for x in 0...maxX {
+        for y in 0...maxY {
+            let offsetMonsterPoints = monsterPoints.map { $0.offset(x: x, y: y) }
+            if marks.isSuperset(of: offsetMonsterPoints) {
+                count += 1
+                marks.subtract(offsetMonsterPoints)
+            }
+        }
+    }
+    print("\(count) found \(marks.count) # remaining")
+    return count
+}
+
 func part2() {
-    var tiles: [Tile.Id:Tile] = sampleInput.components(separatedBy: "\n\n").reduce(into: [:], { (map, input) in
+    var tiles: [Tile.Id:Tile] = input.components(separatedBy: "\n\n").reduce(into: [:], { (map, input) in
         let tile = Tile(input: input)
         map[tile.id] = tile
     })
@@ -279,6 +322,10 @@ func part2() {
     let combined = arrange(tiles: tiles, order: ordered)
 
     print(combined.joined(separator: "\n"))
+
+    // The stitching orientation is random on each run through so just re-run the program until
+    // search comes up with any number of monster.
+    search(monster: monster, map: combined)
 
 }
 
