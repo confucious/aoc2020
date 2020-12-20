@@ -36,8 +36,8 @@ struct Edges {
         case .rotate90: return Edges(top: flipMap[left], bottom: flipMap[right], left: bottom, right: top)
         case .rotate180: return Edges(top: flipMap[bottom], bottom: flipMap[top], left: flipMap[right], right: flipMap[left])
         case .rotate270: return Edges(top: right, bottom: left, left: flipMap[top], right: flipMap[bottom])
-        case .mirrorRotate90: return Edges(top: left, bottom: right, left: flipMap[bottom], right: flipMap[top])
-        case .mirrorRotate270: return Edges(top: flipMap[right], bottom: flipMap[left], left: top, right: bottom)
+        case .mirrorRotate90: return Edges(top: left, bottom: right, left: top, right: bottom)
+        case .mirrorRotate270: return Edges(top: flipMap[right], bottom: flipMap[left], left: flipMap[bottom], right: flipMap[top])
         }
     }
 }
