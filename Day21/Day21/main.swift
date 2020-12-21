@@ -54,3 +54,15 @@ func part1() {
 
 part1()
 
+// did part 2 manually
+/*
+ dairy: ["bxjvzk"]
+ eggs: ["hqgqj"]
+ fish: ["sp"]
+ nuts: ["spl"]
+ peanuts: ["hsksz"]
+ sesame: ["qzzzf"]
+ shellfish: ["fmpgn"]
+ soy: ["tpnnkc"]
+ bxjvzk,hqgqj,sp,spl,hsksz,qzzzf,fmpgn,tpnnkc
+ */
