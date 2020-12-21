@@ -50,11 +50,30 @@ func part1() {
     }
 
     print(count)
+
+    // part 2... 7 minutes to write.
+    var determinedAllergens = [Allergen:Ingredient]()
+    var undeterminedAllergens = allergens
+    while !undeterminedAllergens.isEmpty {
+        undeterminedAllergens.forEach {
+            if $0.value.count == 1 {
+                determinedAllergens[$0.key] = $0.value.first!
+                undeterminedAllergens.removeValue(forKey: $0.key)
+            }
+        }
+        determinedAllergens.values.forEach { (ingredient) in
+            undeterminedAllergens.forEach {
+                undeterminedAllergens[$0.key] = $0.value.subtracting([ingredient])
+            }
+        }
+    }
+    let result = determinedAllergens.keys.sorted().map { determinedAllergens[$0]! }.joined(separator: ",")
+    print(result)
 }
 
 part1()
 
-// did part 2 manually
+// did part 2 manually. 2.5 minutes to do by hand.
 /*
  dairy: ["bxjvzk"]
  eggs: ["hqgqj"]
