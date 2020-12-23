@@ -46,17 +46,20 @@ elements.forEach { (element) in
     indexed[element.value - 1] = element
 }
 
-for index in 0..<10_000_000 {
-    let pickUp = [current.next!, current.next.next!, current.next.next.next!]
-    let pickUpValues = pickUp.map { $0.value }
-    let remaining = current.next.next.next.next!
+var counter = 0
+while counter < 10_000_000 {
+    counter += 1
+    let pickUp1 = current.next!
+    let pickUp2 = pickUp1.next!
+    let pickUp3 = pickUp2.next!
+    let remaining = pickUp3.next!
     var search = remaining
     for offset in 1...4 {
         let targetValue = (current.value - offset < 1)
             ? current.value - offset + maxValue
             : current.value - offset
 //        print("\(current.value) \(targetValue)")
-        if pickUpValues.contains(targetValue) {
+        if pickUp1.value == targetValue || pickUp2.value == targetValue || pickUp3.value == targetValue {
             continue
         }
 
@@ -69,12 +72,12 @@ for index in 0..<10_000_000 {
     current.next = remaining
 
     let searchNext = search.next!
-    search.next = pickUp[0]
-    pickUp[2].next = searchNext
+    search.next = pickUp1
+    pickUp3.next = searchNext
 
     current = current.next
 
-    if index % 1000000 == 0 { print(index) }
+//    if index % 1000000 == 0 { print(index) }
 //    display(current)
 }
 
