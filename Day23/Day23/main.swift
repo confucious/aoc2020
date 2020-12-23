@@ -13,7 +13,6 @@ let input = "925176834"
 class Element {
     let value: Int
     var next: Element!
-    var prev: Element!
 
     init(value: Int) {
         self.value = value
@@ -40,7 +39,6 @@ func display(_ element: Element) {
 }
 elements.enumerated().forEach { (index, element) in
     element.next = elements[safeIndex(index + 1)]
-    element.prev = elements[safeIndex(index - 1)]
 }
 
 var indexed = Array<Element>(repeating: Element(value: 0), count: maxValue)
@@ -69,13 +67,10 @@ for index in 0..<10_000_000 {
         break
     }
     current.next = remaining
-    remaining.prev = current
 
     let searchNext = search.next!
     search.next = pickUp[0]
-    pickUp[0].prev = search
     pickUp[2].next = searchNext
-    searchNext.prev = pickUp[2]
 
     current = current.next
 
